@@ -1,0 +1,50 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Program size
+      id: program-size
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Program size
+        setup-command: ''
+        command: "[ $(cat programma.R | wc -l) -ge 10 ] && echo 0 || echo 1"
+        timeout: 2
+        max-score: 1
+    - name: Scatterplot present
+      id: scatterplot-present
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Scatterplot present
+        setup-command: ''
+        command: '[ -f "scatter.svg" ] && echo 0 || echo 1'
+        timeout: 2
+        max-score: 1
+    - name: Boxplot present
+      id: boxplot-present
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Boxplot present
+        setup-command: ''
+        command: '[ -f "boxplot.svg" ] && echo 0 || echo 1'
+        timeout: 2
+        max-score: 1
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        PROGRAM-SIZE_RESULTS: "${{steps.program-size.outputs.result}}"
+        SCATTERPLOT-PRESENT_RESULTS: "${{steps.scatterplot-present.outputs.result}}"
+        BOXPLOT-PRESENT_RESULTS: "${{steps.boxplot-present.outputs.result}}"
+      with:
+        runners: program-size,scatterplot-present,boxplot-present
